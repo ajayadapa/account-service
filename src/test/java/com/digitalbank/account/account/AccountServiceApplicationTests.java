@@ -1,4 +1,4 @@
-package com.digitalbank.account;
+package com.digitalbank.account.account;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

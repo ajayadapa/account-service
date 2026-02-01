@@ -2,43 +2,43 @@ package com.digitalbank.account.service;
 
 import com.digitalbank.account.dto.FundTransferRequest;
 import com.digitalbank.account.dto.FundTransferResponse;
-import com.digitalbank.account.model.AccountEntity;
-import com.digitalbank.account.model.TransactionEntity;
 import com.digitalbank.account.repository.AccountRepository;
 import com.digitalbank.account.repository.TransactionRepository;
-import com.digitalbank.dto.exception.customer.AccountNotFoundException;
-import com.digitalbank.dto.exception.customer.InsufficientBalanceException;
+import com.digitalbank.common.exception.AccountNotFoundException;
+import com.digitalbank.common.exception.InsufficientBalanceException;
+import com.digitalbank.common.model.AccountEntity;
+import com.digitalbank.common.model.TransactionEntity;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static com.digitalbank.account.constants.Constants.*;
+import static com.digitalbank.common.utils.AccountConstants.*;
+
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class FundTransferService {
 
-    @Autowired
-    AccountRepository accountRepository;
 
-    @Autowired
-    TransactionRepository transactionRepository;
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public FundTransferResponse fundTransfer(FundTransferRequest request) {
 
         AccountEntity sourceAccount = accountRepository.findByAccountNumber(request.getSourceAccountId()).orElseThrow(() -> new AccountNotFoundException(DEBIT_ACCOUNT_NOT_FOUND));
         AccountEntity destinationAccount = accountRepository.findByAccountNumber(request.getDestAccountId()).orElseThrow(() -> new AccountNotFoundException(CREDIT_ACCOUNT_NOT_FOUND));
-        String transactionFingerPrint = request.toString();
+        String transactionFingerPrint = requestFingerPrint(request);
         Optional<TransactionEntity> entity = transactionRepository.findByRequestFingerPrint(transactionFingerPrint);
         FundTransferResponse response = new FundTransferResponse();
         if (entity.isPresent()) {
             log.debug("Duplicate transaction detected for fingerprint: {}", transactionFingerPrint);
-            response.setStatus(DUPLICATE_TRXN);
+            response.setStatus(DUPLICATE_TRAN);
             response.setTransactionId(String.valueOf(entity.get().getId()));
             return response;
         }
@@ -48,6 +48,16 @@ public class FundTransferService {
             throw new InsufficientBalanceException(INSUFFICIENT_FUNDS);
         }
         return emitTransaction(request, response, sourceAccount, destinationAccount, transactionFingerPrint);
+    }
+
+    private String requestFingerPrint(FundTransferRequest request) {
+
+        return request.getSourceAccountId().toLowerCase() +
+                request.getDestAccountId().toLowerCase() +
+                request.getAmount().toPlainString() +
+                request.getCurrency().toLowerCase() +
+                request.getReason().toLowerCase() +
+                request.getType().toLowerCase();
     }
 
 
@@ -66,6 +76,7 @@ public class FundTransferService {
     }
 
     private TransactionEntity mapRequestToEntity(FundTransferRequest request) {
+        log.info(" Mapping fund transfer request to transaction entity");
         TransactionEntity entity = new TransactionEntity();
         entity.setDebitAccount(request.getSourceAccountId());
         entity.setCreditAccount(request.getDestAccountId());

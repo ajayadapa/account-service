@@ -1,23 +1,25 @@
 package com.digitalbank.account.dto;
 
 
+import com.digitalbank.common.enums.AccountStatus;
+import com.digitalbank.common.enums.AccountSubType;
+import com.digitalbank.common.enums.AccountType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountRequest {
 
     @NotBlank
-    private String customerId;
+    private String cif;
 
     @NotNull
     private AccountType accountType;

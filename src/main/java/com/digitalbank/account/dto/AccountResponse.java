@@ -1,16 +1,19 @@
 package com.digitalbank.account.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.digitalbank.common.enums.AccountStatus;
+import com.digitalbank.common.enums.AccountSubType;
+import com.digitalbank.common.enums.AccountType;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountResponse {
-    private String customerId;
+    private String cif;
+    private String accountId;
     private String accountNumber;
     private AccountType accountType;
     private AccountSubType accountSubType;
